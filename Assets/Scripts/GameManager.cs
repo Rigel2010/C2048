@@ -114,7 +114,32 @@ public class GameManager : MonoBehaviour
                 });
             }).AddTo(this);
     }
-
+    #region  move
+    public void MoveLeft()
+    {
+        if (CurState.Value != GameState.WaitInput) return;
+        CurState.Value = GameState.Move;
+        StartCoroutine(_gridsManager.Move(MoveDir.Left));
+    }
+    public void MoveRight()
+    {
+        if (CurState.Value != GameState.WaitInput) return;
+        CurState.Value = GameState.Move;
+        StartCoroutine(_gridsManager.Move(MoveDir.Right));
+    }
+    public void MoveUp()
+    {
+        if (CurState.Value != GameState.WaitInput) return;
+        CurState.Value = GameState.Move;
+        StartCoroutine(_gridsManager.Move(MoveDir.Up));
+    }
+    public void MoveDown()
+    {
+        if (CurState.Value != GameState.WaitInput) return;
+        CurState.Value = GameState.Move;
+        StartCoroutine(_gridsManager.Move(MoveDir.Down));
+    }
+    #endregion
     void AddNowIntoHistory(string history)
     {
         if(gridsHistories.Count>=maxHistoryLength) gridsHistories.RemoveAt(0);

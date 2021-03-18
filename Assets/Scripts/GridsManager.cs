@@ -18,7 +18,7 @@ public class GridsManager : MonoBehaviour
 
     
     public Grid<GridInfo> grids { get; private set; }
-
+    private int cellSize = 200;
 
     public void Prepare(int amount)
     {
@@ -33,7 +33,7 @@ public class GridsManager : MonoBehaviour
         }
         
         var rect = this.GetComponent<RectTransform>().rect;
-        var cellSize = (int)(rect.width / amount);
+        cellSize = (int)(rect.width / amount);
         var gridGroup = this.GetComponent<GridLayoutGroup>();
         gridGroup.cellSize = new Vector2(cellSize, cellSize);
         grids = new Grid<GridInfo>(amount,amount);
@@ -58,6 +58,8 @@ public class GridsManager : MonoBehaviour
         if (!grid.isEmpty) return;
         var go = Instantiate(entityPrefab, entitiesTran);
         go.transform.position = grid.transform.position;
+        var rect = go.GetComponent<RectTransform>();
+        rect.sizeDelta=new Vector2(cellSize,cellSize);
         go.transform.localPosition = new Vector3(go.transform.localPosition.x, go.transform.localPosition.y, 0);
         var ctrl = go.GetComponent<EntityCtrl>();
         ctrl.SetEntity(num);
@@ -88,7 +90,6 @@ public class GridsManager : MonoBehaviour
         var j = Random.Range(0, maxNum+1);
         GeneralAt(selable[i],j);
     }
-    //左
     public IEnumerator Move(MoveDir dir)
     {
         bool hasChange = false;
@@ -147,7 +148,7 @@ public class GridsManager : MonoBehaviour
             for (var j = aimIndex-1; j >= 0; j--)
             {
                 if (lor[j].isEmpty) aimIndex = j;
-                else if (lor[i].num == lor[j].num && !lor[i].entity.hasUp&& !lor[i].entity.needDestroy)
+                else if (lor[i].num == lor[j].num && !lor[j].entity.hasUp&& !lor[j].entity.needDestroy)
                 {
                     lor[j].entity.needDestroy = true;
                     lor[i].entity.num += 1;
@@ -163,8 +164,8 @@ public class GridsManager : MonoBehaviour
             var e = lor[i].entity;
             lor[i].ClearGrid();
             lor[aimIndex].entity = e;
-            e.transform.DOMoveX(lor[aimIndex].transform.position.x, 0.2f);
-            e.transform.DOMoveY(lor[aimIndex].transform.position.y, 0.2f);
+            e.transform.DOMoveX(lor[aimIndex].transform.position.x, 0.1f);
+            e.transform.DOMoveY(lor[aimIndex].transform.position.y, 0.1f);
             hasChange = true;
         }
 
