@@ -164,8 +164,8 @@ public class GridsManager : MonoBehaviour
             var e = lor[i].entity;
             lor[i].ClearGrid();
             lor[aimIndex].entity = e;
-            e.transform.DOMoveX(lor[aimIndex].transform.position.x, 0.1f);
-            e.transform.DOMoveY(lor[aimIndex].transform.position.y, 0.1f);
+            e.transform.DOMoveX(lor[aimIndex].transform.position.x, 0.2f);
+            e.transform.DOMoveY(lor[aimIndex].transform.position.y, 0.2f);
             hasChange = true;
         }
 
