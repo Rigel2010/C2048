@@ -3,8 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using DG.Tweening;
+using Doozy.Engine.UI;
 using Sirenix.Utilities;
+using UniRx;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
@@ -12,14 +15,18 @@ public class GridsManager : MonoBehaviour
 {
     
 
+    [Header("Main")]
     [SerializeField] private GameObject gridPrefab;
     [SerializeField] private GameObject entityPrefab;
-    [SerializeField] private Transform entitiesTran;
-
+    [SerializeField] private RectTransform entitiesTran;
+    [Header("Sel")]
+    [SerializeField] private GameObject selGridPrefab;
+    [SerializeField] private RectTransform selGridTran;
 
     private Grid<GridInfo> Grids { get; set; }
     private int _cellSize = 200;
-
+    public static UnityAction<GridInfo> OnClickGrid;
+    public UIView SelView => selGridTran.GetComponent<UIView>();
     public void Prepare(int amount)
     {
         //清除已有子物体
@@ -31,21 +38,40 @@ public class GridsManager : MonoBehaviour
         {
             Destroy(entitiesTran.GetChild(i).gameObject);
         }
+        for (int i = 0; i < selGridTran.childCount; i++)
+        {
+            Destroy(selGridTran.GetChild(i).gameObject);
+        }
         
-        var rect = this.GetComponent<RectTransform>().rect;
+        //生成低格和选择用表格
+        var rectTran = this.GetComponent<RectTransform>();
+        var rect = rectTran.rect;
+        selGridTran.position = transform.position;
+        selGridTran.sizeDelta = rectTran.sizeDelta;
         _cellSize = (int)(rect.width / amount);
+        
         var gridGroup = this.GetComponent<GridLayoutGroup>();
+        var selGridGroup = selGridTran.GetComponent<GridLayoutGroup>();
         gridGroup.cellSize = new Vector2(_cellSize, _cellSize);
+        selGridGroup.cellSize = gridGroup.cellSize;
+        
         Grids = new Grid<GridInfo>(amount,amount);
         for (int i = 0; i < Grids.count; i++)
         {
+            //低格
             var go = Instantiate(gridPrefab, this.transform);
             var grid = go.AddComponent<GridInfo>();
             Grids.SetItem(i,grid);
             var index2 = Grids.GetIndex2(i);
             go.name = $"{index2.x}_{index2.y}";
+            //选择格
+            var selGo = Instantiate(selGridPrefab, selGridTran);
+            var btn = selGo.GetComponent<Button>();
+            btn.OnClickAsObservable().Subscribe(_ =>
+            {
+                OnClickGrid?.Invoke(grid);
+            }).AddTo(selGo);
         }
-
         Game2048Manager.CurState.Value = GameState.Prepared;
     }
     public void GeneralAt(int i, int num)
@@ -171,7 +197,7 @@ public class GridsManager : MonoBehaviour
 
         return hasChange;
     }
- 
+    
 
     public int points => entitiesTran.GetComponentsInChildren<EntityCtrl>().Sum(e => e.point);
     public bool IsGameOver()

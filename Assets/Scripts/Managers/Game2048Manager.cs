@@ -15,7 +15,6 @@ public class Game2048Manager : MonoBehaviour
     [SerializeField] private TMP_Text pointText;
     #endregion
 
-    
     //可在游戏中设定、MasterData管理
     private const int MAXHistoryLength = 10;
     public int amount;
@@ -100,7 +99,7 @@ public class Game2048Manager : MonoBehaviour
             }).AddTo(this);
       
         #endregion
-
+        
         #region debug
 
         #if UNITY_EDITOR
@@ -189,6 +188,7 @@ public class Game2048Manager : MonoBehaviour
     
     
 
+    //TODO Move to GameManager
     private void OnApplicationQuit()
     {
         UserData.Save("quit");
@@ -196,5 +196,5 @@ public class Game2048Manager : MonoBehaviour
 
     
 }
-public enum GameState{None,Prepared,FirstEntities,WaitInput,Move,CheckOver,Generate,Over}
+public enum GameState{None,Prepared,FirstEntities,WaitInput,Move,CheckOver,Generate,Over,UseItem,SelGrid,ItemInflu}
 
