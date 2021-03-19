@@ -16,9 +16,9 @@ public class GridsManager : MonoBehaviour
     [SerializeField] private GameObject entityPrefab;
     [SerializeField] private Transform entitiesTran;
 
-    
-    public Grid<GridInfo> grids { get; private set; }
-    private int cellSize = 200;
+
+    private Grid<GridInfo> Grids { get; set; }
+    private int _cellSize = 200;
 
     public void Prepare(int amount)
     {
@@ -33,24 +33,24 @@ public class GridsManager : MonoBehaviour
         }
         
         var rect = this.GetComponent<RectTransform>().rect;
-        cellSize = (int)(rect.width / amount);
+        _cellSize = (int)(rect.width / amount);
         var gridGroup = this.GetComponent<GridLayoutGroup>();
-        gridGroup.cellSize = new Vector2(cellSize, cellSize);
-        grids = new Grid<GridInfo>(amount,amount);
-        for (int i = 0; i < grids.count; i++)
+        gridGroup.cellSize = new Vector2(_cellSize, _cellSize);
+        Grids = new Grid<GridInfo>(amount,amount);
+        for (int i = 0; i < Grids.count; i++)
         {
             var go = Instantiate(gridPrefab, this.transform);
             var grid = go.AddComponent<GridInfo>();
-            grids.SetItem(i,grid);
-            var index2 = grids.GetIndex2(i);
+            Grids.SetItem(i,grid);
+            var index2 = Grids.GetIndex2(i);
             go.name = $"{index2.x}_{index2.y}";
         }
 
-        GameManager.CurState.Value = GameState.Prepared;
+        Game2048Manager.CurState.Value = GameState.Prepared;
     }
     public void GeneralAt(int i, int num)
     {
-        var grid = grids.GetItem(i);
+        var grid = Grids.GetItem(i);
         GeneralAt(grid,num);
     }
     public void GeneralAt(GridInfo grid, int num)
@@ -59,7 +59,7 @@ public class GridsManager : MonoBehaviour
         var go = Instantiate(entityPrefab, entitiesTran);
         go.transform.position = grid.transform.position;
         var rect = go.GetComponent<RectTransform>();
-        rect.sizeDelta=new Vector2(cellSize,cellSize);
+        rect.sizeDelta=new Vector2(_cellSize,_cellSize);
         go.transform.localPosition = new Vector3(go.transform.localPosition.x, go.transform.localPosition.y, 0);
         var ctrl = go.GetComponent<EntityCtrl>();
         ctrl.SetEntity(num);
@@ -67,16 +67,16 @@ public class GridsManager : MonoBehaviour
     }
     public string GridsToHistory()
     {
-        return grids.ToString();
+        return Grids.ToString();
     }
     public bool HistoryToGrids(string history)
     {
         var g = history.Split(',');
-        if (g.Length != grids.count) return false;
+        if (g.Length != Grids.count) return false;
         for (int i = 0; i < g.Length; i++)
         {
             var gi = Convert.ToInt32(g[i]);
-            grids.GetItem(i).ClearGrid();
+            Grids.GetItem(i).ClearGrid();
             if(gi >= 0) GeneralAt(i,gi);
         }
 
@@ -85,7 +85,7 @@ public class GridsManager : MonoBehaviour
 
     public void RandomGenerate(int maxNum = 0)
     {
-        var selable = grids.items.Where(g => g.isEmpty).ToArray();
+        var selable = Grids.items.Where(g => g.isEmpty).ToArray();
         var i = Random.Range(0, selable.Length);
         var j = Random.Range(0, maxNum+1);
         GeneralAt(selable[i],j);
@@ -98,19 +98,19 @@ public class GridsManager : MonoBehaviour
         switch (dir)
         {
             case MoveDir.Left:
-                lor = grids.GetAllLines();
+                lor = Grids.GetAllLines();
                 break;
             case MoveDir.Right:
-                lor = grids.GetAllLines(false);
+                lor = Grids.GetAllLines(false);
                 break;
             case MoveDir.Up:
-                lor = grids.GetAllRows();
+                lor = Grids.GetAllRows();
                 break;
             case MoveDir.Down:
-                lor = grids.GetAllRows(false);
+                lor = Grids.GetAllRows(false);
                 break;
             default: 
-                lor = grids.GetAllLines();
+                lor = Grids.GetAllLines();
                 break;
         }
         
@@ -127,12 +127,12 @@ public class GridsManager : MonoBehaviour
             e.Refresh();
         }
 
-        var entityGrids = grids.items.Where(g => !g.isEmpty);
+        var entityGrids = Grids.items.Where(g => !g.isEmpty);
         foreach (var g in entityGrids)
         {
             g.entity.transform.position = new Vector3(g.transform.position.x, g.transform.position.y,g.entity.transform.position.z);
         }
-        GameManager.CurState.Value = hasChange?GameState.CheckOver:GameState.WaitInput;
+        Game2048Manager.CurState.Value = hasChange?GameState.CheckOver:GameState.WaitInput;
     }
 
     bool MoveLineOrRow(GridInfo[] lor)
@@ -176,14 +176,14 @@ public class GridsManager : MonoBehaviour
     public int points => entitiesTran.GetComponentsInChildren<EntityCtrl>().Sum(e => e.point);
     public bool IsGameOver()
     {
-        if (grids.items.Where(g => g.isEmpty).Count() == 0)
+        if (Grids.items.Where(g => g.isEmpty).Count() == 0)
         {
-            for (var i = 0;i<grids.count;i++)
+            for (var i = 0;i<Grids.count;i++)
             {
-                if (grids.HasLeft(i) && grids.GetLeft(i).num == grids.GetItem(i).num) return false;
-                if (grids.HasRight(i) && grids.GetRight(i).num == grids.GetItem(i).num) return false;
-                if (grids.HasUp(i) && grids.GetUp(i).num == grids.GetItem(i).num) return false;
-                if (grids.HasDown(i) && grids.GetDown(i).num == grids.GetItem(i).num) return false;
+                if (Grids.HasLeft(i) && Grids.GetLeft(i).num == Grids.GetItem(i).num) return false;
+                if (Grids.HasRight(i) && Grids.GetRight(i).num == Grids.GetItem(i).num) return false;
+                if (Grids.HasUp(i) && Grids.GetUp(i).num == Grids.GetItem(i).num) return false;
+                if (Grids.HasDown(i) && Grids.GetDown(i).num == Grids.GetItem(i).num) return false;
             }
     
             return true;
