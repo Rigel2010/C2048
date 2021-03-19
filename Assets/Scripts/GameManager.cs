@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Doozy.Engine.UI;
 using TMPro;
 using UniRx;
 using UnityEngine;
@@ -11,8 +12,6 @@ public class GameManager : MonoBehaviour
 
     [SerializeField] private GridsManager _gridsManager;
     [SerializeField] private TMP_Text pointText;
-    [SerializeField] private GameObject popWnd;
-    [SerializeField] private GameObject overPopPrefab;
     #endregion
 
     public int amount;
@@ -22,7 +21,7 @@ public class GameManager : MonoBehaviour
     private const int maxHistoryLength = 10;
     private List<string> gridsHistories = new List<string>();
     public static ReactiveProperty<GameState> CurState = new ReactiveProperty<GameState>(GameState.None);
-    
+    private UIPopup popup;
     void Start()
     {
         //UI
@@ -30,7 +29,6 @@ public class GameManager : MonoBehaviour
         {
             pointText.text = point.Value.ToString();
         }).AddTo(this);
-        popWnd.SetActive(false);
         //Main
         CurState.Where(s => s == GameState.None)
             .Subscribe(_ =>
@@ -104,38 +102,62 @@ public class GameManager : MonoBehaviour
                 bestScore = Mathf.Max(bestScore, point.Value);
                 UserData.data.Save<int>("best", bestScore);
                 UserData.Save("one game over");
-                var overpop = PopUp(overPopPrefab).GetComponent<OverPopView>();
-                overpop.SetText(point.Value,bestScore);
-                overpop.btn.onClick.AddListener(() =>
+                popup = UIPopup.GetPopup("OverPop");
+                if (popup == null) return;
+                popup.Data.SetLabelsTexts("Game Over",
+                    $"Score:<indent=50%>{point}</indent>",
+                    $"Best Score:<indent=50%>{bestScore}</indent>");
+                popup.Data.SetButtonsCallbacks(() =>
                 {
                     UserData.data.DeleteKey("history");
                     CurState.Value = GameState.None;
-                    popWnd.SetActive(false);
+                    if(popup != null) popup.Hide();
                 });
+                popup.Show();
             }).AddTo(this);
     }
     #region  move
     public void MoveLeft()
     {
         if (CurState.Value != GameState.WaitInput) return;
+        if (_gridsManager.IsGameOver())
+        {
+            CurState.Value = GameState.Over;
+            return;
+        }
         CurState.Value = GameState.Move;
         StartCoroutine(_gridsManager.Move(MoveDir.Left));
     }
     public void MoveRight()
     {
         if (CurState.Value != GameState.WaitInput) return;
+        if (_gridsManager.IsGameOver())
+        {
+            CurState.Value = GameState.Over;
+            return;
+        }
         CurState.Value = GameState.Move;
         StartCoroutine(_gridsManager.Move(MoveDir.Right));
     }
     public void MoveUp()
     {
         if (CurState.Value != GameState.WaitInput) return;
+        if (_gridsManager.IsGameOver())
+        {
+            CurState.Value = GameState.Over;
+            return;
+        }
         CurState.Value = GameState.Move;
         StartCoroutine(_gridsManager.Move(MoveDir.Up));
     }
     public void MoveDown()
     {
         if (CurState.Value != GameState.WaitInput) return;
+        if (_gridsManager.IsGameOver())
+        {
+            CurState.Value = GameState.Over;
+            return;
+        }
         CurState.Value = GameState.Move;
         StartCoroutine(_gridsManager.Move(MoveDir.Down));
     }
@@ -157,11 +179,7 @@ public class GameManager : MonoBehaviour
         UserData.Save("quit");
     }
 
-    GameObject PopUp(GameObject popPrefab)
-    {
-        popWnd.gameObject.SetActive(true);
-        return Instantiate(popPrefab, popWnd.transform);
-    }
+    
 }
 public enum GameState{None,Prepared,FirstEntities,WaitInput,Move,CheckOver,Generate,Over}
 
